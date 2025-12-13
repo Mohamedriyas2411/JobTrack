@@ -8,5 +8,10 @@ app.use(express.json());
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/jobcards", require("./routes/jobCardRoutes"));
+app.use("/api/technician", require("./routes/technicianRoutes"));
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/jobcards", require("./routes/jobCardRoutes"));
+app.use("/api/technician", require("./routes/technicianRoutes"));
+
 
 module.exports = app;
