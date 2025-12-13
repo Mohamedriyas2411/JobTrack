@@ -1,0 +1,118 @@
+.kanban-board {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.kanban-board h3 {
+  margin-top: 0;
+  color: #555;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.kanban-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.kanban-column {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kanban-column-header {
+  padding: 15px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kanban-column-header h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.kanban-column-header .count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.kanban-cards {
+  padding: 15px;
+  min-height: 200px;
+}
+
+.kanban-card {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.kanban-card-header {
+  margin-bottom: 10px;
+}
+
+.kanban-card .job-number {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 14px;
+}
+
+.kanban-card p {
+  margin: 5px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.job-issues {
+  color: #777;
+  font-size: 12px;
+  margin-top: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.technician {
+  color: #667eea;
+  font-weight: 600;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.no-jobs {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+}
+
+@media (max-width: 1024px) {
+  .kanban-columns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .kanban-columns {
+    grid-template-columns: 1fr;
+  }
+}
