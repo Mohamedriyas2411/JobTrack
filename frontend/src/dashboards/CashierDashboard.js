@@ -1,18 +1,226 @@
+import { useState, useEffect } from "react";
 import api from "../api/api";
+import "./Dashboard.css";
 
 function CashierDashboard() {
-  const generateBill = async () => {
-    await api.post("/cashier/bill/JOB_CARD_ID", {
-      parts: [{ partName: "Engine Oil", quantity: 1 }],
-      services: [{ serviceName: "Service Charge", price: 500 }]
-    });
-    alert("Bill Generated");
+  const [jobCards, setJobCards] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [parts, setParts] = useState([{ partName: "", quantity: 1, price: 0 }]);
+  const [services, setServices] = useState([{ serviceName: "", price: 0 }]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchCompletedJobs();
+  }, []);
+
+  const fetchCompletedJobs = async () => {
+    try {
+      const res = await api.get("/cashier/completed-jobs");
+      setJobCards(res.data);
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+    }
+  };
+
+  const addPart = () => {
+    setParts([...parts, { partName: "", quantity: 1, price: 0 }]);
+  };
+
+  const removePart = (index) => {
+    setParts(parts.filter((_, i) => i !== index));
+  };
+
+  const updatePart = (index, field, value) => {
+    const newParts = [...parts];
+    newParts[index][field] = value;
+    setParts(newParts);
+  };
+
+  const addService = () => {
+    setServices([...services, { serviceName: "", price: 0 }]);
+  };
+
+  const removeService = (index) => {
+    setServices(services.filter((_, i) => i !== index));
+  };
+
+  const updateService = (index, field, value) => {
+    const newServices = [...services];
+    newServices[index][field] = value;
+    setServices(newServices);
+  };
+
+  const calculateTotal = () => {
+    const partsTotal = parts.reduce((sum, part) => sum + (part.quantity * part.price), 0);
+    const servicesTotal = services.reduce((sum, service) => sum + Number(service.price), 0);
+    return partsTotal + servicesTotal;
+  };
+
+  const generateBill = async (e) => {
+    e.preventDefault();
+
+    // Validation
+    const validParts = parts.filter(p => p.partName && p.quantity > 0 && p.price > 0);
+    const validServices = services.filter(s => s.serviceName && s.price > 0);
+
+    if (validParts.length === 0 && validServices.length === 0) {
+      alert("Please add at least one part or service");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.post(`/cashier/bill/${selectedJob._id}`, {
+        parts: validParts,
+        services: validServices
+      });
+      alert("Bill Generated Successfully!");
+      
+      // Reset
+      setSelectedJob(null);
+      setParts([{ partName: "", quantity: 1, price: 0 }]);
+      setServices([{ serviceName: "", price: 0 }]);
+      
+      // Refresh jobs
+      fetchCompletedJobs();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to generate bill");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
+    <div className="dashboard">
       <h2>Cashier Dashboard</h2>
-      <button onClick={generateBill}>Generate Bill</button>
+      
+      <div className="dashboard-section">
+        <h3>Completed Jobs (Ready for Billing)</h3>
+        <div className="job-cards-list">
+          {jobCards.length === 0 ? (
+            <p className="no-data">No jobs ready for billing</p>
+          ) : (
+            jobCards.map((job) => (
+              <div key={job._id} className="job-card-item">
+                <div className="job-card-header">
+                  <span className="job-number">{job.jobCardNumber}</span>
+                  <span className={`status-badge status-${job.status.toLowerCase()}`}>
+                    {job.status}
+                  </span>
+                </div>
+                <div className="job-card-details">
+                  <p><strong>Vehicle:</strong> {job.vehicleType} - {job.vehicleNumber}</p>
+                  <p><strong>Customer:</strong> {job.customerName} ({job.customerPhone})</p>
+                  <button
+                    onClick={() => setSelectedJob(job)}
+                    className="btn-primary"
+                  >
+                    Generate Bill
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {selectedJob && (
+        <div className="modal-overlay" onClick={() => setSelectedJob(null)}>
+          <div className="modal-content billing-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Generate Bill</h3>
+            <p><strong>Job:</strong> {selectedJob.jobCardNumber}</p>
+            <p><strong>Customer:</strong> {selectedJob.customerName}</p>
+            
+            <form onSubmit={generateBill}>
+              <div className="billing-section">
+                <h4>Parts Used</h4>
+                {parts.map((part, index) => (
+                  <div key={index} className="billing-item">
+                    <input
+                      type="text"
+                      placeholder="Part name"
+                      value={part.partName}
+                      onChange={(e) => updatePart(index, "partName", e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      min="1"
+                      value={part.quantity}
+                      onChange={(e) => updatePart(index, "quantity", Number(e.target.value))}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      min="0"
+                      value={part.price}
+                      onChange={(e) => updatePart(index, "price", Number(e.target.value))}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePart(index)}
+                      className="btn-remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={addPart} className="btn-secondary">
+                  + Add Part
+                </button>
+              </div>
+
+              <div className="billing-section">
+                <h4>Services</h4>
+                {services.map((service, index) => (
+                  <div key={index} className="billing-item">
+                    <input
+                      type="text"
+                      placeholder="Service name"
+                      value={service.serviceName}
+                      onChange={(e) => updateService(index, "serviceName", e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Price"
+                      min="0"
+                      value={service.price}
+                      onChange={(e) => updateService(index, "price", Number(e.target.value))}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeService(index)}
+                      className="btn-remove"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <button type="button" onClick={addService} className="btn-secondary">
+                  + Add Service
+                </button>
+              </div>
+
+              <div className="billing-total">
+                <h4>Total Amount: ₹{calculateTotal().toFixed(2)}</h4>
+              </div>
+
+              <div className="modal-actions">
+                <button type="submit" className="btn-primary" disabled={loading}>
+                  {loading ? "Generating..." : "Generate Bill"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedJob(null)}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
