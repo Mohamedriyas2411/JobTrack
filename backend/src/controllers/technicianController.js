@@ -2,47 +2,88 @@ const JobCard = require("../models/JobCard");
 const TechnicianUpdate = require("../models/TechnicianUpdate");
 const ServiceSummary = require("../models/ServiceSummary");
 
+// Get jobs assigned to logged-in technician
+exports.getAssignedJobs = async (req, res) => {
+  try {
+    const jobCards = await JobCard.find({ 
+      technicianId: req.user.id 
+    }).sort({ createdAt: -1 });
+    
+    res.json(jobCards);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).json({ message: "Failed to fetch jobs", error: error.message });
+  }
+};
+
 // Assign technician (Manager / Advisor)
 exports.assignTechnician = async (req, res) => {
-  const { technicianId } = req.body;
+  try {
+    const { technicianId } = req.body;
 
-  const jobCard = await JobCard.findByIdAndUpdate(
-    req.params.id,
-    { technicianId, status: "IN_PROGRESS" },
-    { new: true }
-  );
+    const jobCard = await JobCard.findByIdAndUpdate(
+      req.params.id,
+      { technicianId, status: "IN_PROGRESS" },
+      { new: true }
+    );
 
-  res.json(jobCard);
+    if (!jobCard) {
+      return res.status(404).json({ message: "Job card not found" });
+    }
+
+    res.json(jobCard);
+  } catch (error) {
+    console.error("Error assigning technician:", error);
+    res.status(500).json({ message: "Failed to assign technician", error: error.message });
+  }
 };
 
 // Technician updates work status / critical issue
 exports.updateWorkStatus = async (req, res) => {
-  const { statusMessage, criticalIssue, issueDescription } = req.body;
+  try {
+    const { statusMessage, criticalIssue, issueDescription } = req.body;
 
-  const update = await TechnicianUpdate.create({
-    jobCardId: req.params.id,
-    technicianId: req.user.id,
-    statusMessage,
-    criticalIssue,
-    issueDescription
-  });
+    const update = await TechnicianUpdate.create({
+      jobCardId: req.params.id,
+      technicianId: req.user.id,
+      statusMessage,
+      criticalIssue,
+      issueDescription
+    });
 
-  res.status(201).json(update);
+    res.status(201).json(update);
+  } catch (error) {
+    console.error("Error updating work status:", error);
+    res.status(500).json({ message: "Failed to update status", error: error.message });
+  }
 };
 
 // Technician completes job
 exports.completeJob = async (req, res) => {
-  const { workDone, nextServiceAdvice, preventionTips } = req.body;
+  try {
+    const { workDone, nextServiceAdvice, preventionTips } = req.body;
 
-  await JobCard.findByIdAndUpdate(req.params.id, { status: "DONE" });
+    const jobCard = await JobCard.findByIdAndUpdate(
+      req.params.id, 
+      { status: "DONE" },
+      { new: true }
+    );
 
-  const summary = await ServiceSummary.create({
-    jobCardId: req.params.id,
-    technicianId: req.user.id,
-    workDone,
-    nextServiceAdvice,
-    preventionTips
-  });
+    if (!jobCard) {
+      return res.status(404).json({ message: "Job card not found" });
+    }
 
-  res.status(201).json(summary);
+    const summary = await ServiceSummary.create({
+      jobCardId: req.params.id,
+      technicianId: req.user.id,
+      workDone,
+      nextServiceAdvice,
+      preventionTips
+    });
+
+    res.status(201).json(summary);
+  } catch (error) {
+    console.error("Error completing job:", error);
+    res.status(500).json({ message: "Failed to complete job", error: error.message });
+  }
 };
