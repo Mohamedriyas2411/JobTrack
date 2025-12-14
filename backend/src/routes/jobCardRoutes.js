@@ -5,6 +5,7 @@ const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.post("/", protect(["advisor"]), createJobCard);
-router.get("/", protect(["manager"]), getAllJobCards);
+// Allow both advisor and manager to view job cards
+router.get("/", protect(["advisor", "manager"]), getAllJobCards);
 
 module.exports = router;

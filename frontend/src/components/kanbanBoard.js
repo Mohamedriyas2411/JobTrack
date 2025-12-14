@@ -24,13 +24,11 @@ function KanbanBoard({ data }) {
               </span>
             </div>
             <div className="kanban-cards">
-              {data[column.key]?.map((job) => (
                 <div key={job._id} className="kanban-card">
                   <div className="kanban-card-header">
                     <span className="job-number">{job.jobCardNumber}</span>
                   </div>
                   <p><strong>Vehicle:</strong> {job.vehicleNumber}</p>
-                  <p><strong>Customer:</strong> {job.customerName}</p>
                   <p className="job-issues">{job.reportedIssues}</p>
                   {job.technicianId && (
                     <p className="technician">👤 {job.technicianId.name}</p>

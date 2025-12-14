@@ -51,11 +51,7 @@ function Login({ setRole, onSwitchToRegister }) {
 
           <div className="form-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            <in{(e) => setPassword(e.target.value)}
               required
             />
           </div>

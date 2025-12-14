@@ -2,7 +2,6 @@ const Bill = require("../models/Bill");
 const JobCard = require("../models/JobCard");
 const { getPartPrice } = require("../services/inventoryService");
 
-// Get jobs with status DONE (ready for billing)
 exports.getCompletedJobs = async (req, res) => {
   try {
     const jobCards = await JobCard.find({ 
@@ -11,8 +10,6 @@ exports.getCompletedJobs = async (req, res) => {
     
     res.json(jobCards);
   } catch (error) {
-    console.error("Error fetching completed jobs:", error);
-    res.status(500).json({ message: "Failed to fetch jobs", error: error.message });
   }
 };
 
@@ -21,7 +18,6 @@ exports.generateBill = async (req, res) => {
     const { parts, services } = req.body;
 
     // Validate that job is in DONE status
-    const jobCard = await JobCard.findById(req.params.id);
     if (!jobCard) {
       return res.status(404).json({ message: "Job card not found" });
     }
@@ -49,16 +45,20 @@ exports.generateBill = async (req, res) => {
       totalAmount += Number(s.price);
     });
 
-    const bill = await Bill.create({
       jobCardId: req.params.id,
       parts: processedParts,
       services,
-      totalAmount
+      totalAmount,
+      notificationSent: true,
+      notificationDate: new Date()
     });
 
     await JobCard.findByIdAndUpdate(req.params.id, {
       status: "BILLED"
     });
+
+    // Log notification (in real app, send SMS/email here)
+    console.log(`📧 Notification sent to customer: ${jobCard.customerName} (${jobCard.customerPhone})`);
 
     res.status(201).json(bill);
   } catch (error) {

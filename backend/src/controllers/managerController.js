@@ -1,4 +1,30 @@
 const JobCard = require("../models/JobCard");
+const User = require("../models/User");
+const Bill = require("../models/Bill");
+
+// Get all technicians
+exports.getAllTechnicians = async (req, res) => {
+  try {
+    const technicians = await User.find({ role: "technician" }).select("name email");
+    res.json(technicians);
+    res.status(500).json({ message: "Failed to fetch technicians", error: error.message });
+  }
+};
+
+// Get all bills
+exports.getAllBills = async (req, res) => {
+  try {
+    const bills = await Bill.find()
+      .populate({
+        path: "jobCardId",
+        populate: { path: "serviceAdvisorId technicianId", select: "name" }
+      .sort({ createdAt: -1 });
+    res.json(bills);
+  } catch (error) {
+    console.error("Error fetching bills:", error);
+    res.status(500).json({ message: "Failed to fetch bills", error: error.message });
+  }
+};
 
 // Kanban view (group by status)
 exports.getKanbanView = async (req, res) => {
@@ -9,7 +35,6 @@ exports.getKanbanView = async (req, res) => {
       .sort({ createdAt: -1 });
 
     const kanban = {
-      CREATED: [],
       IN_PROGRESS: [],
       DONE: [],
       BILLED: []
@@ -21,7 +46,6 @@ exports.getKanbanView = async (req, res) => {
 
     res.json(kanban);
   } catch (error) {
-    console.error("Error fetching kanban data:", error);
     res.status(500).json({ message: "Failed to fetch kanban data", error: error.message });
   }
 };
@@ -31,8 +55,6 @@ exports.getDashboardSummary = async (req, res) => {
   try {
     const total = await JobCard.countDocuments();
     const created = await JobCard.countDocuments({ status: "CREATED" });
-    const inProgress = await JobCard.countDocuments({ status: "IN_PROGRESS" });
-    const done = await JobCard.countDocuments({ status: "DONE" });
     const billed = await JobCard.countDocuments({ status: "BILLED" });
 
     res.json({
@@ -43,7 +65,6 @@ exports.getDashboardSummary = async (req, res) => {
       billed
     });
   } catch (error) {
-    console.error("Error fetching dashboard summary:", error);
     res.status(500).json({ message: "Failed to fetch dashboard data", error: error.message });
   }
 };

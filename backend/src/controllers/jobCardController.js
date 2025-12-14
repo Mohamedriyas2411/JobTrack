@@ -7,10 +7,8 @@ exports.createJobCard = async (req, res) => {
       jobCardNumber: "JC-" + Date.now(),
       serviceAdvisorId: req.user.id
     });
-    res.status(201).json(jobCard);
   } catch (error) {
     console.error("Error creating job card:", error);
-    res.status(500).json({ message: "Failed to create job card", error: error.message });
   }
 };
 

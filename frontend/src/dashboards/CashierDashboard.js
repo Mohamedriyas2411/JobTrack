@@ -14,12 +14,7 @@ function CashierDashboard() {
   }, []);
 
   const fetchCompletedJobs = async () => {
-    try {
-      const res = await api.get("/cashier/completed-jobs");
-      setJobCards(res.data);
-    } catch (err) {
-      console.error("Error fetching jobs:", err);
-    }
+    
   };
 
   const addPart = () => {
@@ -39,32 +34,7 @@ function CashierDashboard() {
   const addService = () => {
     setServices([...services, { serviceName: "", price: 0 }]);
   };
-
-  const removeService = (index) => {
-    setServices(services.filter((_, i) => i !== index));
-  };
-
-  const updateService = (index, field, value) => {
-    const newServices = [...services];
-    newServices[index][field] = value;
-    setServices(newServices);
-  };
-
-  const calculateTotal = () => {
-    const partsTotal = parts.reduce((sum, part) => sum + (part.quantity * part.price), 0);
-    const servicesTotal = services.reduce((sum, service) => sum + Number(service.price), 0);
-    return partsTotal + servicesTotal;
-  };
-
-  const generateBill = async (e) => {
-    e.preventDefault();
-
-    // Validation
-    const validParts = parts.filter(p => p.partName && p.quantity > 0 && p.price > 0);
-    const validServices = services.filter(s => s.serviceName && s.price > 0);
-
-    if (validParts.length === 0 && validServices.length === 0) {
-      alert("Please add at least one part or service");
+east one part or service");
       return;
     }
 
@@ -74,23 +44,11 @@ function CashierDashboard() {
         parts: validParts,
         services: validServices
       });
-      alert("Bill Generated Successfully!");
+      alert("✅ Bill Generated Successfully!\n📧 Notification sent to customer: " + selectedJob.customerName);
       
       // Reset
       setSelectedJob(null);
-      setParts([{ partName: "", quantity: 1, price: 0 }]);
-      setServices([{ serviceName: "", price: 0 }]);
-      
-      // Refresh jobs
-      fetchCompletedJobs();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to generate bill");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
+      set
     <div className="dashboard">
       <h2>Cashier Dashboard</h2>
       

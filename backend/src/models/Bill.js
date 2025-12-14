@@ -24,7 +24,12 @@ const BillSchema = new mongoose.Schema({
     type: String,
     enum: ["PENDING", "PAID"],
     default: "PENDING"
-  }
+  },
+  notificationSent: {
+    type: Boolean,
+    default: false
+  },
+  notificationDate: Date
 }, { timestamps: true });
 
 module.exports = mongoose.model("Bill", BillSchema);
